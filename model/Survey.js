@@ -2,9 +2,9 @@
 var mongoose = require("mongoose");
 
 var questionSchema = new mongoose.Schema({
-  questionType: ["FreeText", "SingleSelect"],
-  questionText:String,
-  questionAnswers:[String]
+  questionType: {type:String,enum:["FreeText", "SingleSelect"],required:true},
+  questionText:{type:String,required:true},
+  answerChoices:[String]
 });
  
 var surveySchema = new mongoose.Schema({

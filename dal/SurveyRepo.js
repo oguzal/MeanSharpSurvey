@@ -17,6 +17,28 @@ async function getSurveyByName(name) {
     return "An error has occured while getting the survey";
   }
 }
+
+async function getSurveysQuestionsByName(name) {
+  try {
+    var survey = await models.Survey.find({ name: name });
+    return survey.questions;
+  } catch (err) {
+    return "An error has occured while getting the survey";
+  }
+}
+
+
+async function getQuestion(id) {
+  try {
+    var question=await models.Question.find({ id: id });
+    if (question==null)
+    return "No question by this id"; 
+    return question;  
+ } catch (err) {
+    return "An error has occured while getting the question";
+  }
+}
+
 //#endregion
 
 //#region Create
@@ -102,5 +124,7 @@ module.exports = {
   deleteSurvey: deleteSurvey,
   getSurveys: getSurveys,
   getSurveyByName: getSurveyByName,
+  getSurveysQuestionsByName:getSurveysQuestionsByName,
+  getQuestion:getQuestion,
   updateSurveyActive: updateSurveyActive
 };

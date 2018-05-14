@@ -15,8 +15,10 @@ router.post('/', async function (req, res) {
         });
     }
     catch (err) {
+        // TODO Log error
+        
         if (err.code == 11000) return res.status(500).send("The user already exists in the system.");
-        return res.status(500).send("There was a problem adding the user");
+        return res.status(500).send("There was a problem adding the user: " +err.message);
     }
     res.status(200).send(user);
 });
