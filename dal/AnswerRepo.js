@@ -21,7 +21,34 @@ async function createAnswer(questionID, userID, answer) {
         });
     } catch (err) {
         console.log(err);
-        return "An error has occured while creating survey";
+        return "An error has occured while saving the answer";
+    }
+}
+
+async function getAnswer(questionID, userID) {
+    try {
+        return await models.Answer.find({ questionID: questionID, userID: userID });
+    }
+    catch (err) {
+
+    }
+}
+async function updateAnswer(questionID, userID, answer) {
+    try {
+        var answer = await answerRepo.getAnswer(questionID, userID);
+        if (answer == null)
+            return "Answer doesnt exists for this userID";
+        var question = await surveyRepo.getQuestion(questionID);
+
+        if ((question.questionType == "SingleSelect") && !question.answerChoices.contains(answer))
+            return "Invalid choice";
+        answer.answer = answer;
+        answer.updatedDate = Date.now();
+        answer.save();
+        return answer;
+     } catch (err) {
+        console.log(err);
+        return "An error has occured while updating the answer";
     }
 }
 
@@ -36,8 +63,13 @@ async function getAnswersBySurveyUser(surveyID, userID) {
     throw "Not implemented";
 }
 
+// Get Answers by Survey
+async function getAnswersBySurvey(surveyID) {
+
+}
+
 // Get Answers by  question ID
-async function getAnswersByQuestion(questionID,recordCount) {
+async function getAnswersByQuestion(questionID, recordCount) {
     throw "Not implemented";
 }
 
@@ -45,7 +77,7 @@ module.exports = {
     createAnswer: createAnswer,
     updateAnswer: updateAnswer,
     getAnswer: getAnswer,
-    getUnAnsweredBySurveyUser:getUnAnsweredBySurveyUser,
-    getAnswersBySurveyUser:getAnswersBySurveyUser,
-    getAnswersBySurvey:getAnswersBySurvey
+    getUnAnsweredBySurveyUser: getUnAnsweredBySurveyUser,
+    getAnswersBySurveyUser: getAnswersBySurveyUser,
+    getAnswersBySurvey: getAnswersBySurvey
 };
