@@ -1,19 +1,77 @@
-var models = require("../model/Answer");
+var Answer = require("../model/Answer");
+var Survey = require("../model/Survey");
+var Question = require("../model/Question");
+
 var utils = require("../utils/Utils");
 var surveyRepo = require("../dal/SurveyRepo");
 var userRepo = require("../dal/UserRepo");
 
+//#region Get 
+async function getAnswer(questionID, userID) {
+    try {
+      return  await Answer.findOne({ questionID: questionID, userID: userID });
+    }
+    catch (err) {
+        return err;
+    }
+}
+
+async function getQuestion(id) {
+    try {
+        //tODO fix 
+        var question = await Survey.find({ id: id });
+        if (question != isMongooseModel)
+            return "No question by this id";
+        return question;
+    } catch (err) {
+        return "An error has occured while getting the question";
+    }
+}
+
+
+// Get UnAnswered questions  by survey and user
+async function getUnAnsweredQuestionsBySurveyUser(surveyID, userID) {
+    //  var answers = await models.Answer.find({ id: id });
+}
+
+// Get Answers by user and survey
+async function getAnswersBySurveyUser(surveyID, userID) {
+    var questions = await getQuestionsBySurvey(surveyID);
+    var answers;
+    questions.forEach(function (q) {
+        var answer = Answer.find({ questionID: q.questionID, userID: userID });
+        answers.push(answer);
+    });
+    return answers;
+}
+
+// Get Answers by Survey
+async function getAnswersBySurvey(surveyID) {
+    var answers = await Answer.find({ surveyID: surveyID });
+    return answers;
+}
+
+async function getQuestionsBySurvey(surveyID) {
+    var questions = await Question.find({ surveyID: surveyID });
+    return questions;
+}
+
+// Get Answers by  question ID
+async function getAnswersByQuestion(questionID, recordCount) {
+    throw "Not implemented";
+}
+//#endregion
+
+//#region Create/Update
 async function createAnswer(questionID, userID, answer) {
     try {
         var question = await surveyRepo.getQuestion(questionID);
-        if (question == null)
-            return "Invalid question id";
+        if (!question ) return "Invalid question id";
         var user = await userRepo.getUser(userID);
-        if (user == null)
-            return "Invalid user id";
-        if ((question.questionType == "SingleSelect") && !question.answerChoices.contains(answer))
+        if (!user) return "Invalid user id";
+        if (     question.questionType == "SingleSelect" &&            !question.answerChoices.contains(answer)        )
             return "Invalid choice";
-        return await models.Answer.create({
+        return await Answer.create({
             questionID: questionID,
             userID: userID,
             answer: answer,
@@ -25,59 +83,43 @@ async function createAnswer(questionID, userID, answer) {
     }
 }
 
-async function getAnswer(questionID, userID) {
-    try {
-        return await models.Answer.find({ questionID: questionID, userID: userID });
-    }
-    catch (err) {
 
-    }
-}
-async function updateAnswer(questionID, userID, answer) {
+async function updateAnswer(questionID, userID, answerValue) {
     try {
-        var answer = await answerRepo.getAnswer(questionID, userID);
-        if (answer == null)
-            return "Answer doesnt exists for this userID";
+        var answer = await getAnswer(questionID, userID);
+        if (!answer ) return "Answer doesnt exists for this user/question";
         var question = await surveyRepo.getQuestion(questionID);
-
-        if ((question.questionType == "SingleSelect") && !question.answerChoices.contains(answer))
+        if (!question ) return "Question doesnt exists by this questionID";
+        if (
+            question.questionType == "SingleSelect" &&
+            !question.answerChoices.contains(answer)
+        )
             return "Invalid choice";
-        answer.answer = answer;
+        answer.answer = answerValue;
         answer.updatedDate = Date.now();
         answer.save();
         return answer;
-     } catch (err) {
+    } catch (err) {
         console.log(err);
         return "An error has occured while updating the answer";
     }
 }
 
-// Get UnAnswered questions  by survey and user
-async function getUnAnsweredBySurveyUser(surveyID, userID) {
-    throw "Not implemented";
+async function upsertAnswer(questionID, userID, answerValue) {
+    var answer = await getAnswer(questionID, userID);
+    if (!answer) return await createAnswer(questionID, userID, answerValue);
+    else return await updateAnswer(questionID, userID, answerValue);
 }
+//#endregion
 
 
-// Get Answers by user and survey
-async function getAnswersBySurveyUser(surveyID, userID) {
-    throw "Not implemented";
-}
-
-// Get Answers by Survey
-async function getAnswersBySurvey(surveyID) {
-
-}
-
-// Get Answers by  question ID
-async function getAnswersByQuestion(questionID, recordCount) {
-    throw "Not implemented";
-}
 
 module.exports = {
     createAnswer: createAnswer,
     updateAnswer: updateAnswer,
+    upsertAnswer: upsertAnswer,
     getAnswer: getAnswer,
-    getUnAnsweredBySurveyUser: getUnAnsweredBySurveyUser,
+    getUnAnsweredQuestionsBySurveyUser: getUnAnsweredQuestionsBySurveyUser,
     getAnswersBySurveyUser: getAnswersBySurveyUser,
     getAnswersBySurvey: getAnswersBySurvey
 };

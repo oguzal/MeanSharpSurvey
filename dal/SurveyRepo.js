@@ -1,10 +1,12 @@
-var models = require("../model/Survey");
+var Survey = require("../model/Survey");
+var Question = require("../model/Question");
+
 var utils = require("../utils/Utils");
 
 //#region Get
 async function getSurveys() {
   try {
-    return await models.Survey.find({});
+    return await Survey.find({});
   } catch (err) {
     return "An error has occured while getting surveys";
   }
@@ -12,15 +14,21 @@ async function getSurveys() {
 
 async function getSurveyByName(name) {
   try {
-    return await models.Survey.find({ name: name });
+    return await Survey.findOne({ name: name });
   } catch (err) {
     return "An error has occured while getting the survey";
   }
 }
-
+async function getSurvey(id) {
+  try {
+    return await Survey.findById(id);
+  } catch (err) {
+    return "An error has occured while getting the survey";
+  }
+}
 async function getSurveysQuestionsByName(name) {
   try {
-    var survey = await models.Survey.find({ name: name });
+    var survey = await Survey.find({ name: name });
     return survey.questions;
   } catch (err) {
     return "An error has occured while getting the survey";
@@ -30,7 +38,7 @@ async function getSurveysQuestionsByName(name) {
 
 async function getQuestion(id) {
   try {
-    var question=await models.Question.find({ id: id });
+    var question=await Question.find({ id: id });
     if (question==null)
     return "No question by this id"; 
     return question;  
@@ -44,7 +52,7 @@ async function getQuestion(id) {
 //#region Create
 async function createSurvey(req) {
   try {
-    return await models.Survey.create({
+    return await Survey.create({
       name: req.body.name,
       questions: req.body.questions,
       launchTime: utils.toTime(req.body.launchTime),
@@ -63,7 +71,7 @@ async function createSurvey(req) {
 //#region Update
 async function updateSurvey(id, sValues) {
   try {
-    var survey = await models.Survey.findById(id);
+    var survey = await Survey.findById(id);
 
     if (survey == null) {
       return "The survey by this id does not exist.";
@@ -89,7 +97,7 @@ async function updateSurvey(id, sValues) {
 // Togles survey IsActive
 async function updateSurveyActive(id, isActive) {
   try {
-    var survey = await models.Survey.findById(id);
+    var survey = await Survey.findById(id);
     if (survey == null) {
       return "The survey by this id does not exist.";
     }
@@ -109,7 +117,7 @@ async function updateSurveyActive(id, isActive) {
 //#region delete
 async function deleteSurvey(id) {
   try {
-    var result = await models.Survey.findByIdAndRemove(id);
+    var result = await Survey.findByIdAndRemove(id);
     return result;
   } catch (err) {
     console.log(err);
@@ -123,7 +131,8 @@ module.exports = {
   updateSurvey: updateSurvey,
   deleteSurvey: deleteSurvey,
   getSurveys: getSurveys,
-  getSurveyByName: getSurveyByName,
+  getSurveyByName: getSurveyByName,  
+  getSurvey: getSurvey,
   getSurveysQuestionsByName:getSurveysQuestionsByName,
   getQuestion:getQuestion,
   updateSurveyActive: updateSurveyActive
