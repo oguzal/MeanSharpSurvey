@@ -1,10 +1,8 @@
 var User = require('../model/User');
 var Question = require('../model/Question');
 
-
 var mongoose = require('mongoose');
 ObjectId = mongoose.Schema.Types.ObjectId; 
-    
 
 var answerSchema = new mongoose.Schema({
   questionID: { type: ObjectId, index: true ,required:true,ref:"Question"},

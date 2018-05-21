@@ -11,7 +11,6 @@ var answerRepo = require("../dal/AnswerRepo");
 // Create a new  answer
 router.post("/:questionID/:userID/:answer", async function (req, res) {
   try {
-    // TODO Add validation logic for multi select questions answers
     var answer = await answerRepo.upsertAnswer(req.params.questionID,req.params.userID,req.params.answer);
     res.status(200).send(answer);
   } catch (err) {

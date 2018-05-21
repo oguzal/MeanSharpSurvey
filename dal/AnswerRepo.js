@@ -16,22 +16,23 @@ async function getAnswer(questionID, userID) {
     }
 }
 
-async function getQuestion(id) {
-    try {
-        //tODO fix 
-        var question = await Survey.find({ id: id });
-        if (question != isMongooseModel)
-            return "No question by this id";
-        return question;
-    } catch (err) {
-        return "An error has occured while getting the question";
-    }
-}
+// async function getQuestion(id) {
+//     try {
+//         //tODO fix 
+//         var question = await Survey.find({ id: id });
+//         if (!question)
+//                     return "No question by this id";
+//         return question;
+//     } catch (err) {
+//         return "An error has occured while getting the question";
+//     }
+// }
 
 
 // Get UnAnswered questions  by survey and user
 async function getUnAnsweredQuestionsBySurveyUser(surveyID, userID) {
     //  var answers = await models.Answer.find({ id: id });
+    // TODO fill this
 }
 
 // Get Answers by user and survey
@@ -111,8 +112,6 @@ async function upsertAnswer(questionID, userID, answerValue) {
     else return await updateAnswer(questionID, userID, answerValue);
 }
 //#endregion
-
-
 
 module.exports = {
     createAnswer: createAnswer,

@@ -13,7 +13,6 @@ var UserSchema = new mongoose.Schema({
   answers :[{type:ObjectId,index:true,ref:"Answer"}],
   joinDate: { type: Date, default: Date.Now },
   isActive: { type: Boolean, default: true }
-  //TODO Add IsActive field 
 });
 mongoose.model("User", UserSchema);
 

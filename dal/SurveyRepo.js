@@ -2,8 +2,96 @@ var Survey = require("../model/Survey");
 var Question = require("../model/Question");
 
 var utils = require("../utils/Utils");
+var userRepo = require("../dal/UserRepo");
+
+class SurveyTakePeriod {
+  constructor(launchTime, dueTime) {
+    this.launchTime = launchTime;
+    this.dueTime = dueTime;
+  }
+}
 
 //#region Get
+// Get the active surveys whichs laucnh/due date covers current time & user join date is >yesterday
+async function getSurveysAvailableForAUser(userID) {
+  try {
+    var surveys = new Array();
+    var user = await userRepo.getUserByUserID(userID);
+    if (!user) return "Invalid User";
+    if (!utils.checkBeforeToday(user.joinDate))
+      return "User join date must be before today ";
+    var now = new Date();
+    var activeSurveys = await Survey.find({ isActive: true });
+    activeSurveys.forEach(s => {
+      var surveyPeriods = getSurveyTakePeriodsbyJoinDate(s, user.joinDate);
+      var matchingPeriods = surveyPeriods.filter(p => p.launchTime <= now && p.dueTime >= now);
+      if (matchingPeriods.length > 0) {
+        console.log(matchingPeriods);
+        surveys.push(s);
+      }
+    });
+    return surveys;
+  }
+  catch (err) {
+    return "An error has occured while getting the surveys for the user";
+  }
+}
+
+// Get the active surveys whichs 1) laucnh/due date covers given beginDate and endDate 2)  user join date is >yesterday
+async function getSurveysAvailableForAUserInAPeriod(userID, beginDate, endDate) {
+  try {
+    var surveys = new Array();
+    var user = await userRepo.getUserByUserID(userID);
+    if (!user) return "Invalid User";
+    if (!utils.checkBeforeToday(user.joinDate))
+      return "User join date must be before today ";
+    var now = new Date();
+    var activeSurveys = await Survey.find({ isActive: true });
+    activeSurveys.forEach(s => {
+      var surveyPeriods = getSurveyTakePeriodsbyJoinDate(s, user.joinDate);
+      var matchingPeriods = surveyPeriods.filter(p => p.launchTime >= new Date(beginDate) && p.launchTime <= new Date(endDate));
+      console.log(matchingPeriods);
+      if (matchingPeriods.length > 0) {
+        s.surveyTakeTimes = matchingPeriods;
+        surveys.push(s);
+      }
+    });
+    console.log(surveys);
+    return surveys;
+  }
+  catch (err) {
+    return "An error has occured while getting the surveys for the user";
+  }
+}
+
+//Gives the list of the times when a user can take a survey based on the joindate of the user
+function getSurveyTakePeriodsbyJoinDate(survey, joinDate) {
+  var surveyPeriods = [];
+  var dayCount;
+  try {
+    if (survey.frequency == "W")
+      dayCount = 7;
+    else if (survey.frequency == "D")
+      dayCount = 1;
+
+    for (x = 0; x < survey.number; x++) {
+      var surveyBeginTime = new Date();
+      surveyBeginTime.setDate(joinDate.getDate() + 1 + x * dayCount);
+      var surveyBeginHours = utils.getHourAndMinFromDate(survey.launchTime);
+      surveyBeginTime.setHours(surveyBeginHours.Hour, surveyBeginHours.Min, 0, 0);
+      var surveyEndHours = utils.getHourAndMinFromDate(survey.dueTime);
+      var surveyEndTime = new Date(surveyBeginTime);
+      surveyEndTime.setHours(surveyEndHours.Hour, surveyEndHours.Min, 0, 0);
+      var surveyPeriod = new SurveyTakePeriod(surveyBeginTime, surveyEndTime);
+      surveyPeriods.push(surveyPeriod);
+    }
+    return surveyPeriods;
+  }
+  catch (err) {
+    return err;
+  }
+}
+
 async function getSurveys() {
   try {
     return await Survey.find({});
@@ -38,11 +126,11 @@ async function getSurveysQuestionsByName(name) {
 
 async function getQuestion(id) {
   try {
-    var question=await Question.find({ id: id });
-    if (question==null)
-    return "No question by this id"; 
-    return question;  
- } catch (err) {
+    var question = await Question.find({ id: id });
+    if (question == null)
+      return "No question by this id";
+    return question;
+  } catch (err) {
     return "An error has occured while getting the question";
   }
 }
@@ -101,7 +189,7 @@ async function updateSurveyActive(id, isActive) {
     if (survey == null) {
       return "The survey by this id does not exist.";
     }
-     else {
+    else {
       survey.isActive = isActive;
       await survey.save();
       return survey;
@@ -131,9 +219,12 @@ module.exports = {
   updateSurvey: updateSurvey,
   deleteSurvey: deleteSurvey,
   getSurveys: getSurveys,
-  getSurveyByName: getSurveyByName,  
+  getSurveyByName: getSurveyByName,
   getSurvey: getSurvey,
-  getSurveysQuestionsByName:getSurveysQuestionsByName,
-  getQuestion:getQuestion,
-  updateSurveyActive: updateSurveyActive
+  getSurveysQuestionsByName: getSurveysQuestionsByName,
+  getSurveysAvailableForAUser: getSurveysAvailableForAUser,
+  getSurveysAvailableForAUserInAPeriod: getSurveysAvailableForAUserInAPeriod,
+  getQuestion: getQuestion,
+  updateSurveyActive: updateSurveyActive,
+  SurveyPeriod: SurveyTakePeriod
 };

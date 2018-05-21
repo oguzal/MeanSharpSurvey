@@ -6,7 +6,7 @@ router.use(bodyParser.urlencoded({ extended: true }));
 router.use(bodyParser.json());
 var models = require("../model/Survey");
 var utils = require("../utils/Utils");
-var surveyRepo=require("../dal/SurveyRepo");
+var surveyRepo = require("../dal/SurveyRepo");
 
 
 //#region Create Update
@@ -22,15 +22,13 @@ router.post("/", async function (req, res) {
 });
 
 // Update the survey
-router.put("/:id", async function(req, res) {
+router.put("/:id", async function (req, res) {
   try {
-      var survey= await surveyRepo.updateSurvey(req.params.id,req.body);
- 
-      if ( typeof(survey)!=models.Survey)
-        res.status(500).send(survey);        
-      
-      else res.status(200).send(survey);
-    
+    var survey = await surveyRepo.updateSurvey(req.params.id, req.body);
+
+    if (typeof (survey) != models.Survey)
+      res.status(500).send(survey);
+    else res.status(200).send(survey);
   } catch (err) {
     // TODO Add logging 
     console.log(err);
@@ -39,12 +37,12 @@ router.put("/:id", async function(req, res) {
 });
 
 // Toggle IsActive for the survey
-router.put("/:id/isactive/:isactive", async function(req, res) {
+router.put("/:id/isactive/:isactive", async function (req, res) {
   try {
-      var survey= await surveyRepo.updateSurveyActive(req.params.id,req.params.isactive); 
-      if ( typeof(survey)!=models.Survey)
-        res.status(500).send(survey);              
-      else res.status(200).send(survey);    
+    var survey = await surveyRepo.updateSurveyActive(req.params.id, req.params.isactive);
+    if (typeof (survey) != models.Survey)
+      res.status(500).send(survey);
+    else res.status(200).send(survey);
   } catch (err) {
     // TODO Add logging 
     console.log(err);
@@ -55,7 +53,7 @@ router.put("/:id/isactive/:isactive", async function(req, res) {
 
 //#region Get 
 // Get surveys
-router.get("/", async function(req, res) {
+router.get("/", async function (req, res) {
   try {
     var users = await surveyRepo.getSurveys();
     res.status(200).send(users);
@@ -64,18 +62,33 @@ router.get("/", async function(req, res) {
   }
 });
 
-// Get surverys for the user(currently active surveys and users join date must be less than today )
-router.get("/user/:userID", function(req, res) {
-  //TODO this
-  models.Survey.find({}, function(err, users) {
-    if (err)
-      return res.status(500).send("There was a problem finding the users.");
-    res.status(200).send(users);
-  });
+// Get surveys for the user(currently active surveys and users join date must be less than today )
+router.get("/user/:userID", async function (req, res) {
+  try {
+    var surveys = await surveyRepo.getSurveysAvailableForAUser(req.params.userID);
+    if (!surveys || surveys.length == 0) return res.status(404).send("No available survey found for the user");
+    res.status(200).send(surveys);
+  }
+  catch (err) {
+    return res.status(500).send("There was a problem finding available surveys");
+  }
+});
+
+
+// Get surveys for the user(currently active surveys and users join date must be less than today ) with the takeTimes filtered by the given date range
+router.get("/user/:userID/:beginDate/:endDate", async function (req, res) {
+  try {
+    var surveys = await surveyRepo.getSurveysAvailableForAUserInAPeriod(req.params.userID,req.params.beginDate,req.params.endDate);
+    if (!surveys || surveys.length == 0) return res.status(404).send("No available survey found for the user");
+    res.status(200).send(surveys);
+  }
+  catch (err) {
+    return res.status(500).send("There was a problem finding available surveys");
+  }
 });
 
 // Get Survey by name
-router.get("/name/:name", async function(req, res) {
+router.get("/name/:name", async function (req, res) {
   try {
     var survey = await surveyRepo.getSurveyByName(req.params.name);
     if (!survey) return res.status(404).send("No survey found by that name.");
@@ -86,7 +99,7 @@ router.get("/name/:name", async function(req, res) {
 });
 
 // Get Survey 
-router.get("/:id", async function(req, res) {
+router.get("/:id", async function (req, res) {
   try {
     var survey = await surveyRepo.getSurvey(req.params.id);
     if (!survey) return res.status(404).send("No survey found by that id.");
@@ -100,12 +113,12 @@ router.get("/:id", async function(req, res) {
 //#endregion
 
 //#region Delete
-// Delete survey by Id
-router.delete("/:id", async function(req, res) {
+//Delete survey by Id
+router.delete("/:id", async function (req, res) {
   try {
     console.log(req.params.id);
     var result = await surveyRepo.deleteSurvey(req.params.id);
-    console.log("delete result "+result);
+    console.log("delete result " + result);
     res.status(200).send("Survey: " + result.name + " was deleted.");
   } catch (err) {
     return res.status(500).send("There was a problem deleting the survey.");
@@ -113,8 +126,6 @@ router.delete("/:id", async function(req, res) {
 });
 
 //#endregion
-
-
 
 module.exports = router;
 
