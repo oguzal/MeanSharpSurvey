@@ -7,7 +7,7 @@ var surveySchema = new mongoose.Schema({
   name: { type: String, index: true , unique:true,required:true},
   launchTime: Date,
   dueTime: Date,
-//  questions: [{type:ObjectId,index:true,ref:"Questions"}],
+ // questions: [{type:ObjectId,index:true,ref:"Question"}],
   questions: [Question],
   createdDate:{type:Date},
   updatedDate:{type:Date},

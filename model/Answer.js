@@ -1,7 +1,8 @@
+
+var mongoose = require('mongoose');
 var User = require('../model/User');
 var Question = require('../model/Question');
 
-var mongoose = require('mongoose');
 ObjectId = mongoose.Schema.Types.ObjectId; 
 
 var answerSchema = new mongoose.Schema({

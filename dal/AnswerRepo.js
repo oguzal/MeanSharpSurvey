@@ -38,9 +38,11 @@ async function getUnAnsweredQuestionsBySurveyUser(surveyID, userID) {
 // Get Answers by user and survey
 async function getAnswersBySurveyUser(surveyID, userID) {
     var questions = await getQuestionsBySurvey(surveyID);
-    var answers;
+    var answers=[];
+    console.log(questions);
     questions.forEach(function (q) {
         var answer = Answer.find({ questionID: q.questionID, userID: userID });
+        
         answers.push(answer);
     });
     return answers;

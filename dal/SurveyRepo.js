@@ -3,7 +3,7 @@ var Question = require("../model/Question");
 
 var utils = require("../utils/Utils");
 var userRepo = require("../dal/UserRepo");
-
+var mongoose = require("mongoose");
 class SurveyTakePeriod {
   constructor(launchTime, dueTime) {
     this.launchTime = launchTime;
@@ -140,16 +140,28 @@ async function getQuestion(id) {
 //#region Create
 async function createSurvey(req) {
   try {
-    return await Survey.create({
+    var survey = await Survey.create({
+      _id: new mongoose.Types.ObjectId(),
       name: req.body.name,
-      questions: req.body.questions,
+      //  questions: req.body.questions,
       launchTime: utils.toTime(req.body.launchTime),
       dueTime: utils.toTime(req.body.dueTime),
       frequency: req.body.frequency,
       number: req.body.number,
       createdDate: Date.now()
     });
-  } catch (err) {
+    //var questions=
+    for (var key in req.body.questions) {
+      var q = req.body.questions[key];
+      var question = await Question.create({
+        surveyID: survey._id,
+        questionText: q.questionText,
+        questionType: q.questionType,
+        answerChoices: q.answerChoices
+      });
+        }
+  return survey.populate('questions');
+      } catch (err) {
     console.log(err);
     return "An error has occured while creating survey";
   }
