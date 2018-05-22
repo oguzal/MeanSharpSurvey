@@ -22,14 +22,15 @@ async function getSurveysAvailableForAUser(userID) {
       return "User join date must be before today ";
     var now = new Date();
     var activeSurveys = await Survey.find({ isActive: true });
-    activeSurveys.forEach(s => {
+
+    for (let s of activeSurveys) {
       var surveyPeriods = getSurveyTakePeriodsbyJoinDate(s, user.joinDate);
       var matchingPeriods = surveyPeriods.filter(p => p.launchTime <= now && p.dueTime >= now);
       if (matchingPeriods.length > 0) {
         console.log(matchingPeriods);
         surveys.push(s);
       }
-    });
+    }
     return surveys;
   }
   catch (err) {
@@ -150,7 +151,6 @@ async function createSurvey(req) {
       number: req.body.number,
       createdDate: Date.now()
     });
-    //var questions=
     for (var key in req.body.questions) {
       var q = req.body.questions[key];
       var question = await Question.create({
@@ -159,9 +159,11 @@ async function createSurvey(req) {
         questionType: q.questionType,
         answerChoices: q.answerChoices
       });
-        }
-  return survey.populate('questions');
-      } catch (err) {
+      survey.questions.push(question);
+    }
+    survey.save();
+    return survey.populate('questions');
+  } catch (err) {
     console.log(err);
     return "An error has occured while creating survey";
   }
@@ -177,15 +179,25 @@ async function updateSurvey(id, sValues) {
       return "The survey by this id does not exist.";
     } else {
       survey.name = sValues.name;
-      survey.questions = sValues.questions;
       survey.launchTime = utils.toTime(sValues.launchTime);
       survey.dueTime = utils.toTime(sValues.dueTime);
       survey.frequency = sValues.frequency;
       survey.number = sValues.number;
       survey.updatedDate = Date.now();
       survey.isActive = sValues.isActive;
+      survey.questions = [];
+      for (var key in sValues.questions) {
+        var q = sValues.questions[key];
+        var question = await Question.create({
+          surveyID: survey._id,
+          questionText: q.questionText,
+          questionType: q.questionType,
+          answerChoices: q.answerChoices
+        });
+        survey.questions.push(question);
+      }
       await survey.save();
-      return survey;
+      return survey.populate('questions');
     }
   } catch (err) {
     //TODO Add logging

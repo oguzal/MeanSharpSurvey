@@ -9,7 +9,7 @@ var userRepo = require("../dal/UserRepo");
 //#region Get 
 async function getAnswer(questionID, userID) {
     try {
-      return  await Answer.findOne({ questionID: questionID, userID: userID });
+        return await Answer.findOne({ questionID: questionID, userID: userID });
     }
     catch (err) {
         return err;
@@ -37,15 +37,27 @@ async function getUnAnsweredQuestionsBySurveyUser(surveyID, userID) {
 
 // Get Answers by user and survey
 async function getAnswersBySurveyUser(surveyID, userID) {
-    var questions = await getQuestionsBySurvey(surveyID);
-    var answers=[];
-    console.log(questions);
-    questions.forEach(function (q) {
-        var answer = Answer.find({ questionID: q.questionID, userID: userID });
-        
-        answers.push(answer);
-    });
-    return answers;
+    try {
+        var questions = await getQuestionsBySurvey(surveyID);
+        var answers = [];
+
+        for (let q of questions) {
+            console.log("question id : " + q._id + ", userID:" +userID);
+            var answer = await getAnswer(q._id, userID);
+            if (answer) {
+                answers.push(answer);
+                console.log("answer question id is " + answer.questionID);
+            }
+        }
+        // questions.forEach(async function (q){
+
+        // });
+        return answers;
+    }
+    catch (err) {
+        console.log(err);
+    }
+
 }
 
 // Get Answers by Survey
@@ -69,10 +81,10 @@ async function getAnswersByQuestion(questionID, recordCount) {
 async function createAnswer(questionID, userID, answer) {
     try {
         var question = await surveyRepo.getQuestion(questionID);
-        if (!question ) return "Invalid question id";
+        if (!question) return "Invalid question id";
         var user = await userRepo.getUser(userID);
         if (!user) return "Invalid user id";
-        if (     question.questionType == "SingleSelect" &&            !question.answerChoices.contains(answer)        )
+        if (question.questionType == "SingleSelect" && !question.answerChoices.contains(answer))
             return "Invalid choice";
         return await Answer.create({
             questionID: questionID,
@@ -90,9 +102,9 @@ async function createAnswer(questionID, userID, answer) {
 async function updateAnswer(questionID, userID, answerValue) {
     try {
         var answer = await getAnswer(questionID, userID);
-        if (!answer ) return "Answer doesnt exists for this user/question";
+        if (!answer) return "Answer doesnt exists for this user/question";
         var question = await surveyRepo.getQuestion(questionID);
-        if (!question ) return "Question doesnt exists by this questionID";
+        if (!question) return "Question doesnt exists by this questionID";
         if (
             question.questionType == "SingleSelect" &&
             !question.answerChoices.contains(answer)
