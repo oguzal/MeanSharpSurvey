@@ -1,4 +1,4 @@
 # MeanSharpSurvey
-A Mean Intro for C#'er using Node, Express , MongoDB
+A Mean Intro for a C#'er using Node, Express , MongoDB
 
 
