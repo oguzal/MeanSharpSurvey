@@ -1,7 +1,7 @@
 # MeanSharpSurvey
-A Mean Intro for CSharp er
+A Mean Intro for C#'er
 
-A survey api allows to: 
+An experimental survey api which allows to: 
 - Create surveys  with free form or single select questions
 - Create users 
 - Allow users to submit survey responses
