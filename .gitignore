@@ -3,3 +3,6 @@ node_modules
 npm-debug.log
 .serverless
 variables.env
+/.vs/MeanSharpSurvey/config
+/.vs/MeanSharpSurvey/FileContentIndex
+/.vs/MeanSharpSurvey/v17
